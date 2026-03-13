@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../api/axios';
-import { DollarSign, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
 
 export default function Dashboard() {
   const [transacoes, setTransacoes] = useState([]);
@@ -8,13 +8,28 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await api.get('/transacoes');
-      setTransacoes(response.data);
-      
-      const total = response.data.reduce((acc, t) => 
-        t.tipo === 'RECEITA' ? acc + t.valor : acc - t.valor, 0
-      );
-      setSaldo(total);
+      try {
+        const [contasRes, transacoesRes] = await Promise.all([
+          api.get('/contas'),
+          api.get('/transacoes')
+        ]);
+
+        const contas = contasRes.data;
+        const transacoes = transacoesRes.data;
+
+        setTransacoes(transacoes);
+
+        const totalSaldoInicial = contas.reduce((acc, conta) => acc + conta.saldoInicial, 0);
+
+        const totalFinal = transacoes.reduce((acc, t) => 
+          t.tipo === 'RECEITA' ? acc + t.valor : acc - t.valor, 
+          totalSaldoInicial
+        );
+
+        setSaldo(totalFinal);
+      } catch (error) {
+        console.error("Erro ao carregar dados do dashboard", error);
+      }
     };
     fetchData();
   }, []);
@@ -33,32 +48,6 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-        {/* Adicionar cards similares para Receitas e Despesas totais */}
-      </div>
-
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
-        <table className="w-full text-left">
-          <thead className="bg-gray-50 border-b border-gray-100">
-            <tr>
-              <th className="px-6 py-4 font-semibold text-gray-600">Descrição</th>
-              <th className="px-6 py-4 font-semibold text-gray-600">Categoria</th>
-              <th className="px-6 py-4 font-semibold text-gray-600">Valor</th>
-              <th className="px-6 py-4 font-semibold text-gray-600">Data</th>
-            </tr>
-          </thead>
-          <tbody>
-            {transacoes.map((t) => (
-              <tr key={t.id} className="border-b border-gray-50 last:border-none">
-                <td className="px-6 py-4">{t.descricao}</td>
-                <td className="px-6 py-4">{t.categoriaNome}</td>
-                <td className={`px-6 py-4 font-medium ${t.tipo === 'RECEITA' ? 'text-green-600' : 'text-red-600'}`}>
-                  {t.tipo === 'RECEITA' ? '+' : '-'} R$ {t.valor.toFixed(2)}
-                </td>
-                <td className="px-6 py-4 text-gray-500">{new Date(t.data).toLocaleDateString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
     </div>
   );
