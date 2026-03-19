@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import ConfirmModal from '../components/ConfirmModal';
 import { Plus, Pencil, Trash2, Wallet, X, Check, Loader2, Landmark, PiggyBank, CreditCard, DollarSign } from 'lucide-react';
+import { getBankStyle } from '../constants/bancos';
 
 const TIPOS_CONTA = [
   { value: 'CORRENTE', label: 'Conta Corrente' },
@@ -120,13 +121,18 @@ export default function Contas() {
   const formatCurrency = (value) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
 
-  const getAccountIcon = (tipo) => {
-    switch (tipo?.toUpperCase()) {
-      case 'CORRENTE': return <Landmark size={20} />;
-      case 'POUPANCA': return <PiggyBank size={20} />;
-      case 'CARTEIRA': return <Wallet size={20} />;
-      default: return <CreditCard size={20} />;
-    }
+  const renderBankIcon = (conta) => {
+    const estilo = getBankStyle(conta.nome);
+    
+    let IconComponent = <Landmark size={20} />;
+    if (conta.tipo === 'POUPANCA') IconComponent = <PiggyBank size={20} />;
+    if (conta.tipo === 'CARTEIRA') IconComponent = <Wallet size={20} />;
+
+    return (
+      <div className={`mx-auto w-10 h-10 flex items-center justify-center ${estilo.bgLight} ${estilo.texto} rounded-lg transition-colors shadow-sm`}>
+        {IconComponent}
+      </div>
+    );
   };
 
   const saldoTotalContas = contas.reduce((acc, c) => acc + (c.saldoAtual || 0), 0);
@@ -152,7 +158,6 @@ export default function Contas() {
           </button>
         )}
       </div>
-
       {!loading && (
         <div className="mb-8 max-w-sm">
           <div className="bg-blue-600 p-6 rounded-2xl shadow-lg text-white">
@@ -164,7 +169,6 @@ export default function Contas() {
           </div>
         </div>
       )}
-
       {showForm && (
         <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-in fade-in slide-in-from-top-4">
           <div className="flex items-center justify-between mb-4">
@@ -176,12 +180,12 @@ export default function Contas() {
             <input
               type="text"
               placeholder="Nome (Ex: Nubank)"
-              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
               value={formData.nome}
               onChange={(e) => setFormData({...formData, nome: e.target.value})}
             />
             <select
-              className="px-4 py-2 border rounded-lg bg-white"
+              className="px-4 py-2 border rounded-lg bg-white outline-none"
               value={formData.tipo}
               onChange={(e) => setFormData({...formData, tipo: e.target.value})}
             >
@@ -192,28 +196,27 @@ export default function Contas() {
               type="number"
               step="0.01"
               placeholder="Saldo Inicial (R$)"
-              className="px-4 py-2 border rounded-lg"
+              className="px-4 py-2 border rounded-lg outline-none"
               value={formData.saldoInicial}
               onChange={(e) => setFormData({...formData, saldoInicial: e.target.value})}
             />
             <div className="md:col-span-3 flex gap-2 justify-end">
-              <button type="button" onClick={handleCancelForm} className="px-4 py-2 text-gray-500">Cancelar</button>
-              <button type="submit" disabled={saving} className="bg-blue-600 text-white px-6 py-2 rounded-lg flex items-center gap-2">
+              <button type="button" onClick={handleCancelForm} className="px-4 py-2 text-gray-500 hover:text-gray-700">Cancelar</button>
+              <button type="submit" disabled={saving} className="bg-blue-600 text-white px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 disabled:opacity-50">
                 {saving ? <Loader2 size={18} className="animate-spin" /> : editingId ? 'Atualizar' : 'Criar Conta'}
               </button>
             </div>
           </form>
         </div>
       )}
-
       {loading ? (
-        <div className="flex justify-center py-12"><Loader2 className="animate-spin text-blue-600" /></div>
+        <div className="flex justify-center py-12"><Loader2 className="animate-spin text-blue-600" size={32} /></div>
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <table className="w-full text-left">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                <th className="px-6 py-4 font-semibold text-gray-600 text-sm text-center w-20">Ícone</th>
+                <th className="px-6 py-4 font-semibold text-gray-600 text-sm text-center w-24">Banco</th>
                 <th className="px-6 py-4 font-semibold text-gray-600 text-sm">Nome / Tipo</th>
                 <th className="px-6 py-4 font-semibold text-gray-600 text-sm text-right">Saldo Inicial</th>
                 <th className="px-6 py-4 font-semibold text-gray-600 text-sm text-right">Saldo Atual</th>
@@ -224,13 +227,13 @@ export default function Contas() {
               {contas.map((conta) => (
                 <tr key={conta.id} className="border-b border-gray-50 last:border-none hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
-                    <div className="mx-auto w-10 h-10 flex items-center justify-center bg-gray-50 rounded-lg text-gray-500">
-                      {getAccountIcon(conta.tipo)}
-                    </div>
+                    {renderBankIcon(conta)}
                   </td>
                   <td className="px-6 py-4">
                     <p className="font-bold text-gray-900">{conta.nome}</p>
-                    <p className="text-xs text-gray-400 uppercase tracking-wider">{conta.tipo}</p>
+                    <p className="text-xs text-gray-400 uppercase tracking-wider">
+                      {TIPOS_CONTA.find(t => t.value === conta.tipo)?.label || conta.tipo}
+                    </p>
                   </td>
                   <td className="px-6 py-4 text-right text-sm text-gray-500">{formatCurrency(conta.saldoInicial)}</td>
                   <td className="px-6 py-4 text-right">
@@ -240,8 +243,8 @@ export default function Contas() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2">
-                      <button onClick={() => handleEditClick(conta)} className="p-2 text-gray-400 hover:text-blue-600"><Pencil size={18} /></button>
-                      <button onClick={() => setDeleteModal({ open: true, conta })} className="p-2 text-gray-400 hover:text-red-600"><Trash2 size={18} /></button>
+                      <button onClick={() => handleEditClick(conta)} className="p-2 text-gray-400 hover:text-blue-600 transition-colors"><Pencil size={18} /></button>
+                      <button onClick={() => setDeleteModal({ open: true, conta })} className="p-2 text-gray-400 hover:text-red-600 transition-colors"><Trash2 size={18} /></button>
                     </div>
                   </td>
                 </tr>
@@ -250,6 +253,7 @@ export default function Contas() {
           </table>
         </div>
       )}
+      {successMsg && <div className="fixed bottom-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-in slide-in-from-bottom-4"><Check size={20}/> {successMsg}</div>}
 
       <ConfirmModal
         isOpen={deleteModal.open}
