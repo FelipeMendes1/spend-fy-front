@@ -23,12 +23,12 @@ export default function Transacoes() {
   const dropdownRef = useRef(null);
 
   const [transacoes, setTransacoes] = useState([]);
+  const [contas, setContas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [totalSaldoInicial, setTotalSaldoInicial] = useState(0);
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState({ open: false, transacao: null });
 
@@ -51,8 +51,7 @@ export default function Transacoes() {
         api.get('/contas')
       ]);
       setTransacoes(transacoesRes.data);
-      const inicial = contasRes.data.reduce((acc, conta) => acc + (conta.saldoInicial || 0), 0);
-      setTotalSaldoInicial(inicial);
+      setContas(contasRes.data);
     } catch (err) {
       setError('Erro ao carregar dados das transações.');
       console.error(err);
@@ -91,7 +90,7 @@ export default function Transacoes() {
     .filter((t) => t.tipo === 'DESPESA')
     .reduce((acc, t) => acc + (t.valor || 0), 0);
 
-  const saldoTotal = totalSaldoInicial + totalReceitas - totalDespesas;
+  const saldoTotal = contas.reduce((acc, c) => acc + (c.saldoAtual || 0), 0);
 
   const transacoesFiltradas = transacoes.filter((t) => {
     if (!searchTerm.trim()) return true;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import ConfirmModal from '../components/ConfirmModal';
-import { Plus, Pencil, Trash2, PiggyBank, X, Check, Loader2, CalendarRange } from 'lucide-react';
+import { Plus, Pencil, Trash2, PiggyBank, X, Check, Loader2, CalendarRange, TrendingUp } from 'lucide-react';
 
 const formatCurrency = (value) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
@@ -365,17 +365,20 @@ export default function Orcamentos() {
                 <th className="px-6 py-4 font-semibold text-gray-600 text-sm">Categoria</th>
                 <th className="px-6 py-4 font-semibold text-gray-600 text-sm">Período</th>
                 <th className="px-6 py-4 font-semibold text-gray-600 text-sm">Status</th>
-                <th className="px-6 py-4 font-semibold text-gray-600 text-sm text-right">
-                  Valor Limite
-                </th>
-                <th className="px-6 py-4 font-semibold text-gray-600 text-sm text-right">
-                  Ações
-                </th>
+                <th className="px-6 py-4 font-semibold text-gray-600 text-sm text-right">Limite</th>
+                <th className="px-6 py-4 font-semibold text-gray-600 text-sm text-right">Gasto</th>
+                <th className="px-6 py-4 font-semibold text-gray-600 text-sm text-right">Restante</th>
+                <th className="px-6 py-4 font-semibold text-gray-600 text-sm">Progresso</th>
+                <th className="px-6 py-4 font-semibold text-gray-600 text-sm text-right">Ações</th>
               </tr>
             </thead>
             <tbody>
               {orcamentos.map((orc) => {
                 const status = getPeriodoStatus(orc.dataInicio, orc.dataFim);
+                const percentGasto = orc.valorLimite > 0
+                  ? Math.min((orc.valorGasto / orc.valorLimite) * 100, 100)
+                  : 0;
+                const estourado = orc.valorGasto > orc.valorLimite;
                 return (
                   <tr
                     key={orc.id}
@@ -394,11 +397,9 @@ export default function Orcamentos() {
                       </div>
                     </td>
 
-                    {/* Status */}
+                    {/* Status do período */}
                     <td className="px-6 py-4">
-                      <span
-                        className={`px-2.5 py-1 text-xs font-semibold rounded-full ${status.cls}`}
-                      >
+                      <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${status.cls}`}>
                         {status.label}
                       </span>
                     </td>
@@ -406,6 +407,32 @@ export default function Orcamentos() {
                     {/* Valor limite */}
                     <td className="px-6 py-4 text-right font-semibold text-gray-800">
                       {formatCurrency(orc.valorLimite)}
+                    </td>
+
+                    {/* Valor gasto */}
+                    <td className={`px-6 py-4 text-right font-semibold ${estourado ? 'text-red-600' : 'text-gray-700'}`}>
+                      {formatCurrency(orc.valorGasto)}
+                    </td>
+
+                    {/* Valor restante */}
+                    <td className={`px-6 py-4 text-right font-semibold ${estourado ? 'text-red-600' : 'text-green-600'}`}>
+                      {estourado ? '—' : formatCurrency(orc.valorRestante)}
+                    </td>
+
+                    {/* Barra de progresso */}
+                    <td className="px-6 py-4">
+                      <div className="w-28">
+                        <div className="flex justify-between text-xs text-gray-500 mb-1">
+                          <span>{percentGasto.toFixed(0)}%</span>
+                          {estourado && <span className="text-red-600 font-semibold">Excedido</span>}
+                        </div>
+                        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all ${estourado ? 'bg-red-500' : percentGasto >= 80 ? 'bg-orange-400' : 'bg-green-500'}`}
+                            style={{ width: `${percentGasto}%` }}
+                          />
+                        </div>
+                      </div>
                     </td>
 
                     {/* Ações */}

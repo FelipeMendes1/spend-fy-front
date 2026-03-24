@@ -18,9 +18,9 @@ export default function Dashboard() {
 
         const contas = contasRes.data;
         const transacoesData = transacoesRes.data;
-        setTransacoes(transacoesData);
 
-        const totalSaldoInicial = contas.reduce((acc, conta) => acc + (conta.saldoInicial || 0), 0);
+        // Saldo total = soma do saldoAtual calculado pelo backend por conta
+        const totalSaldo = contas.reduce((acc, conta) => acc + (conta.saldoAtual || 0), 0);
 
         const receitas = transacoesData
           .filter(t => t.tipo === 'RECEITA')
@@ -32,7 +32,13 @@ export default function Dashboard() {
 
         setReceitasTotais(receitas);
         setDespesasTotais(despesas);
-        setSaldo(totalSaldoInicial + receitas - despesas);
+        setSaldo(totalSaldo);
+
+        // Últimas 10 transações ordenadas por data decrescente
+        const ultimas = [...transacoesData]
+          .sort((a, b) => new Date(b.data) - new Date(a.data))
+          .slice(0, 10);
+        setTransacoes(ultimas);
 
       } catch (error) {
         console.error("Erro ao carregar dados do dashboard", error);
@@ -104,7 +110,7 @@ export default function Dashboard() {
                 <td className={`px-6 py-4 font-bold ${t.tipo === 'RECEITA' ? 'text-green-600' : 'text-red-600'}`}>
                   {t.tipo === 'RECEITA' ? '+' : '-'} R$ {t.valor.toFixed(2)}
                 </td>
-                <td className="px-6 py-4 text-gray-500">{new Date(t.data).toLocaleDateString()}</td>
+                <td className="px-6 py-4 text-gray-500">{new Date(t.data + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
               </tr>
             ))}
           </tbody>
