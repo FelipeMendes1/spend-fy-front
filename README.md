@@ -1,36 +1,53 @@
-# SpendFy front
+# SpendFy — Frontend
 
-### 📋 Pré-requisitos
+Interface web do SpendFy, sistema de gestão financeira pessoal desenvolvido como projeto acadêmico na UFAPE.
 
-Antes de começar, você precisará ter instalado em sua máquina:
+## Integrantes
+- Felipe Mendes
+- Guilherme Felix
+- Lucas Tchaikovsky
+- Pedro Medeiros
 
-* Node.js (versão 18 ou superior recomendada)
+## Sobre o Projeto
 
-* npm (ou yarn)
+O SpendFy Frontend oferece uma interface para controle financeiro pessoal, com as seguintes funcionalidades:
 
-* Backend do SpendFy em execução (por padrão na porta 8080)
+- **Dashboard** — resumo do saldo total, receitas, despesas e últimas movimentações
+- **Transações** — listagem, cadastro, edição e exclusão de transações; exportação em CSV e PDF
+- **Contas** — gerenciamento de contas bancárias com saldo inicial e saldo atual calculado
+- **Categorias** — cadastro de categorias para classificar transações
+- **Orçamentos** — definição de limites de gasto por categoria e período, com acompanhamento do valor gasto e restante
 
-### 🛠️ Instruções de Instalação
-Clone o repositório:
+## Tecnologias
+
+- React 19 + Vite
+- Tailwind CSS 4
+- Axios
+- React Router DOM 7
+- Lucide React (ícones)
+
+## Pré-requisitos
+
+- Node.js 18+
+- Backend do SpendFy rodando na porta 8080 (veja [spend-fy-api](../spend-fy-api))
+
+## Como executar
 
 ```bash
-git clone https://github.com/seu-usuario/spend-fy-front.git
-```
-
-Acesse a pasta do projeto:
-```bash
-cd spend-fy-front
-```
-
-Instale as dependências:
-```bash
+# Instalar dependências
+cd spendfy-front
 npm install
+
+# Iniciar em modo de desenvolvimento
+npm run dev
 ```
 
-### 🏃 Como Rodar o Projeto
-Inicie o servidor de desenvolvimento:
+A aplicação estará disponível em: http://localhost:5173
+
+## Variáveis de ambiente
+
+Por padrão a URL da API aponta para `http://localhost:8080/api`. Para alterar, edite o arquivo `src/api/axios.js` ou configure a variável de ambiente:
 
 ```bash
-npm run dev
-``` 
-O Vite geralmente disponibiliza a aplicação em: http://localhost:5173
+VITE_API_URL=http://seu-servidor:8080/api
+```
